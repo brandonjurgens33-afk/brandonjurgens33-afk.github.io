@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Groundhog Day Prediction Search</title>
+  <style>
+    :root {
+      --bg: #ffffff; --surface: #f7f5f1; --text: #1f1f1f; --muted: #5f5b57;
+      --border: #ddd7ce; --accent: #8a4b08;
+      --shadow: #c2410c;   /* saw shadow: six more weeks of winter */
+      --noshadow: #1d6fa5; /* no shadow: early spring */
+      --none: #b8b2a8;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141414; --surface: #1e1e1e; --text: #f1eee9; --muted: #aaa49c;
+        --border: #3a3a3a; --accent: #e8a35c;
+        --shadow: #fb923c; --noshadow: #5ab0e6; --none: #6b665e;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 16px; background: var(--bg); color: var(--text);
+           font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    h1 { font-size: 1.5rem; margin: 0 0 4px; }
+    .lede { margin: 0 0 16px; color: var(--muted); }
+    form { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+           background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field.wide { grid-column: 1 / -1; }
+    label { font-size: .8rem; font-weight: 600; color: var(--muted); }
+    input, select, button { font: inherit; color: var(--text); background: var(--bg);
+           border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; min-height: 40px; }
+    input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--accent); outline-offset: 2px; }
+    button { cursor: pointer; }
+    .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+           gap: 8px; margin: 14px 0 8px; }
+    #count { font-weight: 600; }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .85rem; color: var(--muted); }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; background: var(--none); }
+    .dot.s1 { background: var(--shadow); }
+    .dot.s0 { background: var(--noshadow); }
+    ul.results { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px;
+                 grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
+    .card { border: 1px solid var(--border); border-radius: 8px; padding: 14px; background: var(--bg);
+            display: flex; flex-direction: column; gap: 8px; }
+    .card h2 { font-size: 1.1rem; margin: 0; }
+    .meta { color: var(--muted); font-size: .88rem; margin: 0; }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+    .badge { font-size: .75rem; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; color: var(--muted); }
+    .stats { font-size: .9rem; margin: 0; }
+    .ratio { height: 8px; border-radius: 4px; background: var(--noshadow); overflow: hidden; }
+    .ratio i { display: block; height: 100%; background: var(--shadow); }
+    .strip { display: flex; flex-wrap: wrap; gap: 3px; }
+    .strip .dot { width: 10px; height: 10px; border-radius: 2px; }
+    .strip .dot.hl { outline: 2px solid var(--text); outline-offset: 1px; }
+    details summary { cursor: pointer; font-size: .9rem; color: var(--accent); font-weight: 600; }
+    details p { margin: 6px 0; font-size: .9rem; }
+    table { border-collapse: collapse; width: 100%; font-size: .85rem; margin-top: 6px; }
+    th, td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .scroll { max-height: 220px; overflow: auto; }
+    .links a { color: var(--accent); }
+    .links { font-size: .85rem; margin: 0; display: flex; gap: 12px; flex-wrap: wrap; }
+    .empty, .error { padding: 24px; text-align: center; color: var(--muted); border: 1px dashed var(--border); border-radius: 8px; }
+    .error { color: #b00020; }
+    .more { display: block; margin: 16px auto 0; }
+    mark { background: #ffe58a; color: #000; padding: 0 1px; border-radius: 2px; }
+    .sr { position: absolute; left: -9999px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Groundhog Day Prediction Search</h1>
+    <p class="lede">Search 90+ weather-predicting creatures by name, state or type, and see each one's Groundhog Day track record, 1990–2026.</p>
+
+    <form id="filters" role="search" aria-label="Search groundhogs" autocomplete="off">
+      <div class="field wide">
+        <label for="q">Search by name, city, state/province, or description</label>
+        <input id="q" type="search" placeholder="e.g. Phil, Nebraska, Ontario, marmot">
+      </div>
+      <div class="field"><label for="country">Country</label><select id="country"><option value="">All</option></select></div>
+      <div class="field"><label for="region">State / province</label><select id="region"><option value="">All</option></select></div>
+      <div class="field"><label for="type">Type of animal</label><select id="type"><option value="">All</option></select></div>
+      <div class="field"><label for="active">Status</label>
+        <select id="active"><option value="">All</option><option value="1">Active</option><option value="0">Inactive</option></select></div>
+      <div class="field"><label for="year">Prediction year</label><select id="year"><option value="">Any year</option></select></div>
+      <div class="field"><label for="outcome">Prediction in that year</label>
+        <select id="outcome">
+          <option value="">Any</option>
+          <option value="1">Saw shadow (6 more weeks of winter)</option>
+          <option value="0">No shadow (early spring)</option>
+          <option value="NA">No prediction on record</option>
+        </select></div>
+      <div class="field"><label for="sort">Sort by</label>
+        <select id="sort">
+          <option value="count">Most predictions</option>
+          <option value="name">Name (A–Z)</option>
+          <option value="shadowPct">% shadow</option>
+          <option value="noShadowPct">% no shadow</option>
+          <option value="region">State / province</option>
+        </select></div>
+      <div class="field"><label>&nbsp;</label><button type="reset" id="reset">Reset filters</button></div>
+    </form>
+
+    <div class="bar">
+      <div id="count" role="status" aria-live="polite">Loading…</div>
+      <div class="legend" aria-label="Legend">
+        <span><i class="dot s1"></i> Saw shadow (6 more weeks of winter)</span>
+        <span><i class="dot s0"></i> No shadow (early spring)</span>
+        <span><i class="dot"></i> No data</span>
+      </div>
+    </div>
+
+    <div id="out"></div>
+    <p class="meta">Data: <a href="https://groundhog-day.com">groundhog-day.com</a>, via <a href="https://the-art-of-data-journalism.github.io/tutorial-data/groundhogs/predictions.csv">predictions.csv</a>. The track record counts shadow and no-shadow calls; it does not measure whether the weather agreed.</p>
+  </main>
+
+<script>
+(() => {
+  const CSV_URL = "https://the-art-of-data-journalism.github.io/tutorial-data/groundhogs/predictions.csv";
+  const PAGE = 24;
+  const $ = id => document.getElementById(id);
+  const el = { q:$("q"), country:$("country"), region:$("region"), type:$("type"), active:$("active"),
+               year:$("year"), outcome:$("outcome"), sort:$("sort"), out:$("out"), count:$("count"), form:$("filters") };
+  let hogs = [], shown = PAGE, years = [];
+
+  // --- CSV parser (handles quotes, escaped quotes, newlines inside fields) ---
+  function parseCSV(text) {
+    const rows = []; let row = [], f = "", q = false;
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i+1] === '"') { f += '"'; i++; } else q = false; }
+        else f += c;
+      } else if (c === '"') q = true;
+      else if (c === ",") { row.push(f); f = ""; }
+      else if (c === "\n" || c === "\r") {
+        if (c === "\r" && text[i+1] === "\n") i++;
+        row.push(f); f = ""; if (row.length > 1 || row[0] !== "") rows.push(row); row = [];
+      } else f += c;
+    }
+    if (f !== "" || row.length) { row.push(f); rows.push(row); }
+    const head = rows.shift();
+    return rows.map(r => Object.fromEntries(head.map((h, i) => [h, r[i] ?? ""])));
+  }
+
+  // The source file contains UTF-8 text that was mis-decoded (e.g. "â€™" for an apostrophe).
+  const FIXES = [["â€™","’"],["â€˜","‘"],["â€œ","“"],["â€\u009d","”"],["â€�","”"],["â€“","–"],["â€”","—"],
+                 ["â€¦","…"],["Ã©","é"],["Ã±","ñ"],["Ã¨","è"],["Ã¢","â"],["Ã¶","ö"],["Ã¼","ü"],["Â "," "],["â€","”"]];
+  const fix = s => s && /[âÃÂ]/.test(s) ? FIXES.reduce((a,[b,c]) => a.split(b).join(c), s) : s;
+
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const safeUrl = u => /^https?:\/\//i.test(u || "") ? u : "";
+  const norm = s => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+  function build(rows) {
+    const map = new Map();
+    for (const r of rows) {
+      let h = map.get(r.slug);
+      if (!h) {
+        h = { slug:r.slug, name:fix(r.name), city:fix(r.city), region:fix(r.region), country:r.country,
+              type:r.type.replace(/s$/, ""), active:r.active === "1", description:fix(r.description),
+              image:safeUrl(r.image), source:safeUrl(r.source), latest:safeUrl(r.currentPrediction),
+              byYear:new Map(), last:0 };
+        map.set(r.slug, h);
+      }
+      const y = +r.year;
+      h.byYear.set(y, { shadow:r.shadow, details:fix(r.details) });
+      if (y >= h.last) { h.last = y; h.active = r.active === "1"; h.latest = safeUrl(r.currentPrediction) || h.latest; }
+      h.predictionsCount = Math.max(h.predictionsCount || 0, +r.predictionsCount || 0);
+    }
+    for (const h of map.values()) {
+      const v = [...h.byYear.values()];
+      h.shadow = v.filter(x => x.shadow === "1").length;
+      h.noShadow = v.filter(x => x.shadow === "0").length;
+      h.count = h.shadow + h.noShadow;
+      h.shadowPct = h.count ? h.shadow / h.count : -1;
+      h.noShadowPct = h.count ? h.noShadow / h.count : -1;
+      h.hay = norm([h.name, h.city, h.region, h.country, h.type, h.description].join(" "));
+    }
+    return [...map.values()];
+  }
+
+  function fillSelect(sel, vals) {
+    for (const v of vals) sel.append(new Option(v, v));
+  }
+  const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort((a,b) => a.localeCompare(b));
+
+  function refreshRegions() {
+    const c = el.country.value, cur = el.region.value;
+    const regs = uniq(hogs.filter(h => !c || h.country === c).map(h => h.region));
+    el.region.length = 1; fillSelect(el.region, regs);
+    el.region.value = regs.includes(cur) ? cur : "";
+  }
+
+  function filtered() {
+    const terms = norm(el.q.value).split(/\s+/).filter(Boolean);
+    const y = el.year.value ? +el.year.value : null, o = el.outcome.value;
+    let list = hogs.filter(h =>
+      terms.every(t => h.hay.includes(t)) &&
+      (!el.country.value || h.country === el.country.value) &&
+      (!el.region.value || h.region === el.region.value) &&
+      (!el.type.value || h.type === el.type.value) &&
+      (!el.active.value || h.active === (el.active.value === "1")) &&
+      (y === null && !o ? true :
+        y === null ? [...h.byYear.values()].some(p => p.shadow === o) :
+        !o ? h.byYear.has(y) :
+        h.byYear.has(y) && h.byYear.get(y).shadow === o)
+    );
+    const s = el.sort.value;
+    list.sort((a,b) =>
+      s === "name" ? a.name.localeCompare(b.name) :
+      s === "region" ? (a.region.localeCompare(b.region) || a.name.localeCompare(b.name)) :
+      s === "count" ? (b.count - a.count || a.name.localeCompare(b.name)) :
+      (b[s] - a[s] || a.name.localeCompare(b.name)));
+    return list;
+  }
+
+  function highlight(text, terms) {
+    let out = esc(text);
+    for (const t of terms) {
+      if (t.length < 2) continue;
+      out = out.replace(new RegExp("(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")(?![^<]*>)", "ig"), "<mark>$1</mark>");
+    }
+    return out;
+  }
+
+  const label = s => s === "1" ? "Saw shadow" : s === "0" ? "No shadow" : "No data";
+
+  function card(h, terms, hy) {
+    const strip = years.map(y => {
+      const p = h.byYear.get(y), s = p ? p.shadow : "NA";
+      const cls = s === "1" ? "s1" : s === "0" ? "s0" : "";
+      return `<i class="dot ${cls}${y === hy ? " hl" : ""}" title="${y}: ${label(s)}"></i>`;
+    }).join("");
+    const rows = [...h.byYear.entries()].sort((a,b) => b[0] - a[0]).map(([y,p]) =>
+      `<tr><td>${y}</td><td>${label(p.shadow)}</td><td>${esc(p.details)}</td></tr>`).join("");
+    const pct = n => h.count ? Math.round(n / h.count * 100) + "%" : "–";
+    const place = [h.city, h.region, h.country].filter(Boolean).join(", ");
+    return `<li class="card">
+      <h2>${highlight(h.name, terms)}</h2>
+      <p class="meta">${highlight(place, terms)}</p>
+      <div class="badges"><span class="badge">${esc(h.type)}</span><span class="badge">${h.active ? "Active" : "Inactive"}</span></div>
+      <p class="stats"><strong>Track record:</strong> ${h.count
+        ? `${h.count} predictions since ${Math.min(...h.byYear.keys())}. Shadow ${h.shadow} (${pct(h.shadow)}), no shadow ${h.noShadow} (${pct(h.noShadow)})`
+        : "No predictions on record"}</p>
+      ${h.count ? `<div class="ratio" role="img" aria-label="${pct(h.shadow)} shadow, ${pct(h.noShadow)} no shadow"><i style="width:${h.shadow / h.count * 100}%"></i></div>` : ""}
+      <div class="strip" role="img" aria-label="Prediction history ${years[0]} to ${years[years.length-1]}">${strip}</div>
+      <details><summary>Description &amp; year-by-year history</summary>
+        <p>${highlight(h.description, terms)}</p>
+        <div class="scroll"><table><thead><tr><th>Year</th><th>Prediction</th><th>Notes</th></tr></thead><tbody>${rows}</tbody></table></div>
+      </details>
+      <p class="links">${h.source ? `<a href="${esc(h.source)}" target="_blank" rel="noopener">Past predictions</a>` : ""}${h.latest ? `<a href="${esc(h.latest)}" target="_blank" rel="noopener">Latest prediction</a>` : ""}</p>
+    </li>`;
+  }
+
+  function render() {
+    const list = filtered(), terms = norm(el.q.value).split(/\s+/).filter(Boolean);
+    const hy = el.year.value ? +el.year.value : null;
+    el.count.textContent = `${list.length} of ${hogs.length} animals`;
+    if (!list.length) { el.out.innerHTML = '<div class="empty">No animals match these filters. Try removing one.</div>'; return; }
+    const page = list.slice(0, shown);
+    el.out.innerHTML = `<ul class="results">${page.map(h => card(h, terms, hy)).join("")}</ul>` +
+      (list.length > shown ? `<button type="button" class="more" id="more">Show more (${list.length - shown} remaining)</button>` : "");
+    const more = $("more");
+    if (more) more.onclick = () => { shown += PAGE; render(); };
+    reportHeight();
+  }
+
+  // Lets a CMS embed resize the iframe: parent can listen for {type:"groundhog-search-height"}.
+  function reportHeight() {
+    if (window.parent !== window)
+      window.parent.postMessage({ type:"groundhog-search-height", height:document.documentElement.scrollHeight }, "*");
+  }
+
+  async function init() {
+    try {
+      const res = await fetch(CSV_URL);
+      if (!res.ok) throw new Error(res.status);
+      const rows = parseCSV(await res.text());
+      years = [...new Set(rows.map(r => +r.year))].sort((a,b) => a - b);
+      hogs = build(rows);
+      fillSelect(el.country, uniq(hogs.map(h => h.country)));
+      fillSelect(el.type, uniq(hogs.map(h => h.type)));
+      for (const y of [...years].reverse()) el.year.append(new Option(y, y));
+      refreshRegions();
+      render();
+    } catch (e) {
+      el.count.textContent = "";
+      el.out.innerHTML = '<div class="error" role="alert">Sorry, the data could not be loaded. Please refresh and try again.</div>';
+    }
+  }
+
+  let t;
+  el.q.addEventListener("input", () => { clearTimeout(t); t = setTimeout(() => { shown = PAGE; render(); }, 120); });
+  el.form.addEventListener("change", e => {
+    if (e.target === el.country) refreshRegions();
+    shown = PAGE; render();
+  });
+  el.form.addEventListener("submit", e => e.preventDefault());
+  el.form.addEventListener("reset", () => setTimeout(() => { refreshRegions(); shown = PAGE; render(); }));
+  window.addEventListener("resize", reportHeight);
+  init();
+})();
+</script>
+</body>
+</html>
