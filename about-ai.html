@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About Brandon Jurgens</title>
+  <meta name="description" content="Brandon Jurgens is a Sports Media and Communication student at the University of Nebraska-Lincoln, a campus tour guide and a writer for UNLimited Sports.">
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --surface: #ffffff;
+      --text: #1f1f1f;
+      --muted: #5f5b57;
+      --accent: #d00000;
+      --accent-ink: #ffffff;
+      --border: #e6e1da;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141414;
+        --surface: #1e1e1e;
+        --text: #f1eee9;
+        --muted: #aaa49c;
+        --accent: #ff5c5c;
+        --accent-ink: #141414;
+        --border: #333;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 17px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    a { color: var(--accent); }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 0 20px; }
+
+    header.site {
+      border-bottom: 1px solid var(--border);
+    }
+    header.site .wrap {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-top: 16px; padding-bottom: 16px;
+    }
+    .brand { font-weight: 700; text-decoration: none; color: var(--text); letter-spacing: .02em; }
+    nav a { margin-left: 18px; text-decoration: none; color: var(--muted); font-size: 15px; }
+    nav a:hover, nav a[aria-current] { color: var(--accent); }
+
+    .hero { padding: 64px 0 40px; display: flex; gap: 32px; align-items: center; }
+    .avatar {
+      flex: none; width: 128px; height: 128px; border-radius: 50%;
+      background: var(--accent); color: var(--accent-ink);
+      display: grid; place-items: center;
+      font-size: 44px; font-weight: 700; letter-spacing: .03em;
+    }
+    .eyebrow { margin: 0 0 4px; color: var(--accent); font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: .08em; }
+    h1 { margin: 0 0 8px; font-size: clamp(2rem, 6vw, 3rem); line-height: 1.1; }
+    .tagline { margin: 0; color: var(--muted); font-size: 1.1rem; }
+
+    section { padding: 28px 0; }
+    h2 { margin: 0 0 14px; font-size: 1.4rem; }
+    p { margin: 0 0 14px; }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px 20px;
+    }
+    .card h3 { margin: 0 0 4px; font-size: 1.05rem; }
+    .card .meta { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
+    .card p { margin: 0; font-size: 15.5px; }
+
+    .timeline { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--border); }
+    .timeline li { position: relative; padding: 0 0 22px 22px; }
+    .timeline li::before {
+      content: ""; position: absolute; left: -7px; top: 8px;
+      width: 12px; height: 12px; border-radius: 50%; background: var(--accent);
+    }
+    .timeline h3 { margin: 0; font-size: 1.05rem; }
+    .timeline .meta { margin: 0 0 4px; color: var(--muted); font-size: 14px; }
+    .timeline p { margin: 0; font-size: 15.5px; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0 0 16px; list-style: none; }
+    .chips li {
+      padding: 5px 12px; border-radius: 999px; font-size: 14px;
+      background: var(--surface); border: 1px solid var(--border);
+    }
+    h3.sub { margin: 18px 0 10px; font-size: 1rem; color: var(--muted); font-weight: 600; }
+
+    .contact { text-align: center; padding: 40px 0 64px; }
+    .btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+    .btn {
+      display: inline-block; padding: 11px 22px; border-radius: 8px; font-weight: 600;
+      text-decoration: none; border: 2px solid var(--accent);
+      background: var(--accent); color: var(--accent-ink);
+    }
+    .btn.alt { background: transparent; color: var(--accent); }
+    .btn:hover { opacity: .88; }
+
+    footer { border-top: 1px solid var(--border); padding: 20px 0; color: var(--muted); font-size: 14px; text-align: center; }
+
+    @media (max-width: 600px) {
+      .hero { flex-direction: column; text-align: center; padding-top: 40px; }
+      nav a { margin-left: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="index.html">Brandon Jurgens</a>
+      <nav>
+        <a href="about.html" aria-current="page">About</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="hero">
+      <div class="avatar" aria-hidden="true">BJ</div>
+      <div>
+        <p class="eyebrow">Sports Media &amp; Communication</p>
+        <h1>Hi, I'm Brandon.</h1>
+        <p class="tagline">Nebraska journalism student, campus tour guide and sports writer who loves telling stories about the people and games that make Husker life what it is.</p>
+      </div>
+    </div>
+
+    <section>
+      <h2>A little about me</h2>
+      <p>I'm a student at the University of Nebraska-Lincoln, pursuing a Bachelor of Journalism in Sports Media and Communication with a minor in Hospitality, Restaurant and Tourism Management. I expect to graduate in December 2027.</p>
+      <p>That combination says a lot about me. I like sports and storytelling, and I like making people feel welcome. Whether I'm writing a game story, walking a family across campus or helping a customer at the bakery counter, I'm trying to communicate clearly and make the experience a little more personal.</p>
+    </section>
+
+    <section>
+      <h2>What I'm up to now</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>Writer, UNLimited Sports</h3>
+          <p class="meta">Lincoln, NE · January 2026 – present</p>
+          <p>I write game stories on a variety of sports, shoot photos at games and pick the best ten to build a story. I also learn interviewing and writing tips from working professionals in weekly classes.</p>
+        </div>
+        <div class="card">
+          <h3>Tour Guide, Nebraska Admissions</h3>
+          <p class="meta">Lincoln, NE · October 2025 – present</p>
+          <p>I show future Huskers and their families around campus, answer their questions and get to know each group so every tour feels personal.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Where I've worked</h2>
+      <ul class="timeline">
+        <li>
+          <h3>Bakery Clerk, Russ's Market</h3>
+          <p class="meta">Lincoln, NE · Sept 2023 – Aug 2025</p>
+          <p>Handled customer questions in person and by phone, took and documented orders, managed my time to get every task done in a shift and kept the department stocked.</p>
+        </li>
+        <li>
+          <h3>Summer Help, Village of Adams</h3>
+          <p class="meta">Adams, NE · May – Aug 2023</p>
+          <p>Kept the park and town tidy, helped set up community events and teamed up with others to build a new swing set for the park.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Skills</h2>
+      <h3 class="sub">Tools</h3>
+      <ul class="chips">
+        <li>Adobe Premiere Pro</li>
+        <li>Adobe Audition</li>
+        <li>Adobe InDesign</li>
+        <li>Adobe Illustrator</li>
+        <li>PowerPoint</li>
+        <li>Word</li>
+        <li>Excel</li>
+        <li>Outlook</li>
+      </ul>
+      <h3 class="sub">Strengths</h3>
+      <ul class="chips">
+        <li>Communication</li>
+        <li>Teamwork</li>
+        <li>Customer service</li>
+        <li>Time management</li>
+        <li>Self-management</li>
+      </ul>
+    </section>
+
+    <section class="contact" id="contact">
+      <h2>Let's connect</h2>
+      <p>Want to talk sports, stories or Nebraska? Reach out.</p>
+      <div class="btns">
+        <a class="btn" href="mailto:brandon.jurgens33@gmail.com">Email me</a>
+        <a class="btn alt" href="https://www.linkedin.com/in/brandon-jurgens-881b58349/" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">&copy; 2026 Brandon Jurgens</div>
+  </footer>
+</body>
+</html>
