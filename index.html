@@ -65,6 +65,9 @@
 
   /* Result card */
   #detail { margin-top: 26px; }
+  #detail[hidden], #browse[hidden] { display: none; }
+  .back { border: 0; background: none; padding: 0; margin: 0 0 14px; color: var(--red); font: 700 13px "Open Sans", sans-serif; cursor: pointer; }
+  .back:hover { text-decoration: underline; }
   .kicker { font: 700 13px "Open Sans", sans-serif; color: var(--red); text-transform: uppercase; letter-spacing: .03em; margin: 0; }
   #name { font: 700 clamp(26px, 5vw, 38px)/1.1 "Roboto Condensed", sans-serif; margin: 4px 0 4px; color: #000; }
   .college { margin: 0 0 18px; color: var(--ink-soft); font-size: 14px; }
@@ -150,6 +153,7 @@
   <div class="sr" aria-live="polite" id="live"></div>
 
   <section id="detail" hidden aria-labelledby="name">
+    <button type="button" class="back" id="back">← Back to largest majors</button>
     <p class="kicker" id="kicker"></p>
     <h2 id="name"></h2>
     <p class="college" id="college"></p>
@@ -284,6 +288,7 @@ function show(m) {
   const { d } = m, li = m.li, cur = d.v[li], first = d.v.findIndex(x => x !== null);
   const active = li === 9;
   $("detail").hidden = false;
+  $("browse").hidden = true;
   $("kicker").textContent = active ? "Fall 2025 enrollment" : "Not enrolled in Fall 2025";
   $("name").textContent = m.label;
   $("college").innerHTML = `<strong>College:</strong> ${esc(collegeText(m))}${active ? "" : " (as of Fall " + YEARS[li] + ")"}`;
@@ -376,6 +381,15 @@ $("blist").innerHTML = largest.map((m, i) => `<li><button type="button" data-k="
 $("blist").addEventListener("click", e => {
   const b = e.target.closest("button[data-k]"); if (b) choose(MAJORS.find(m => m.key === b.dataset.k));
 });
+
+function home() {
+  $("detail").hidden = true; $("browse").hidden = false;
+  q.value = ""; closeList();
+  history.replaceState(null, "", location.pathname + location.search);
+  window.scrollTo({ top: 0, behavior: "smooth" }); q.focus();
+}
+$("back").addEventListener("click", home);
+q.addEventListener("input", () => { if (!q.value.trim() && !$("detail").hidden) home(); });
 
 /* deep link: index.html#MAJOR%20NAME */
 if (location.hash.length > 1) {
