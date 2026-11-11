@@ -459,13 +459,42 @@ function renderPicker() {
   });
 }
 
-function load(i) {
+// ----- Saving the puzzle in progress -----
+const PROGRESS_KEY = "dnws-progress";
+let restoring = false;
+
+function elapsedSeconds() { return Math.floor((Date.now() - startTime) / 1000); }
+
+function saveProgress() {
+  if (restoring) return;
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify({
+      puzzle: current, grid, placed, found: [...found], elapsed: elapsedSeconds()
+    }));
+  } catch (e) {}
+}
+
+function readProgress() {
+  try {
+    const s = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "null");
+    if (!s || !PUZZLES[s.puzzle]) return null;
+    const p = PUZZLES[s.puzzle];
+    const size = ROUND_SETTINGS[p.round].size;
+    if (!Array.isArray(s.grid) || s.grid.length !== size || s.grid.some(row => row.length !== size)) return null;
+    if (!Array.isArray(s.placed) || s.placed.map(x => x.word).sort().join() !== [...p.words].sort().join()) return null;
+    if (p.round === 2 && !roundDone(1)) return null;
+    return s;
+  } catch (e) { return null; }
+}
+
+function load(i, saved) {
   current = i;
   const p = PUZZLES[i];
   const settings = ROUND_SETTINGS[p.round];
   SIZE = settings.size;
-  const {g, out} = generate(p.words, settings);
-  grid = g; placed = out; found = new Set();
+  if (saved) { grid = saved.grid; placed = saved.placed; }
+  else { const {g, out} = generate(p.words, settings); grid = g; placed = out; }
+  found = new Set();
   $("story").innerHTML = `<div class="sec"></div><h2></h2><p class="by"></p><p class="sum"></p><a target="_blank" rel="noopener">Read the full story →</a>`;
   $("story").querySelector(".sec").textContent = `Round ${p.round}${settings.label ? " (" + settings.label + ")" : ""} · ${p.section}`;
   $("story").querySelector("h2").textContent = p.title;
@@ -499,15 +528,27 @@ function load(i) {
   updateStats();
   renderPicker();
   clearInterval(timerId);
-  startTime = Date.now();
+  startTime = Date.now() - (saved ? (saved.elapsed || 0) * 1000 : 0);
   timerId = setInterval(tick, 1000);
   tick();
+  if (saved) {
+    // replay the words already found, in the same order (keeps their colors)
+    restoring = true;
+    (saved.found || []).forEach(w => { const pw = placed.find(x => x.word === w); if (pw) markFound(pw); });
+    restoring = false;
+  }
+  saveProgress();
 }
 
 function tick() {
-  const s = Math.floor((Date.now() - startTime) / 1000);
+  const s = elapsedSeconds();
   $("timer").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  saveProgress();
 }
+
+// save right away when the tab is hidden or closed
+document.addEventListener("visibilitychange", () => { if (document.hidden && timerId) saveProgress(); });
+window.addEventListener("pagehide", () => { if (timerId) saveProgress(); });
 
 function updateStats() {
   const n = PUZZLES[current].words.length;
@@ -583,11 +624,15 @@ function markFound(pw) {
   const li = $("words").querySelector(`[data-w="${pw.word}"]`);
   if (li) li.classList.add("got");
   updateStats();
+  saveProgress();
   if (found.size === placed.length) win();
 }
 
 function win() {
+  restoring = false;
+  saveProgress();
   clearInterval(timerId);
+  timerId = null;
   const rd = PUZZLES[current].round;
   const wasRoundDone = roundDone(rd);
   completed.add(current);
@@ -629,7 +674,9 @@ $("winNext").onclick = () => {
   window.scrollTo({top: 0, behavior: "smooth"});
 };
 
-load(0);
+const savedProgress = readProgress();
+if (savedProgress) load(savedProgress.puzzle, savedProgress);
+else load(0);
 </script>
 </body>
 </html>
