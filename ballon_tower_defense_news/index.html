@@ -61,7 +61,7 @@ canvas#game{width:100%;height:auto;aspect-ratio:3/2;display:block;border-radius:
 .diff button{background:var(--panel2)}
 .diff button.on{background:var(--gold);color:#222}
 .big{font-size:18px;padding:10px 28px}
-@media (max-width:950px){#app{flex-direction:column}#side{width:100%}.towers{grid-template-columns:repeat(8,1fr)}}
+@media (max-width:950px){#app{flex-direction:column}#side{width:100%}.towers{grid-template-columns:repeat(7,1fr)}}
 @media (max-width:640px){.towers{grid-template-columns:repeat(4,1fr)}.maps{grid-template-columns:1fr}.card h1{font-size:26px}#app{padding:8px}}
 </style>
 </head>
@@ -282,11 +282,82 @@ const TOWERS={
             {n:'Sonic Cheer',c:1500,d:'Fires 25% faster.',f:s=>{s.reload*=.75}},
             {n:'Go Big Red',c:8000,d:'Fires 3 blasts at once, +30 range.',f:s=>{s.count=3;s.range+=30}}]]}
 };
-const ORDER=['cob','popper','hay','blizzard','kicker','syrup','farm','bigred'];
+Object.assign(TOWERS,{
+  frisbee:{name:'Frisbee Flinger',cost:330,desc:'A quad regular who throws curving frisbees that sweep out and come back, slicing through many balls.',
+    base:{kind:'boomer',range:150,reload:1.2,dmg:1,pierce:5,speed:420,dtype:'sharp',count:1,pr:8,look:'disc'},
+    paths:[[{n:'Multi-Disc',c:200,d:'Frisbees pierce +4 balls.',f:s=>{s.pierce+=4}},
+            {n:'Glow Disc',c:300,d:'+1 damage, glowing discs cut Concrete.',f:s=>{s.dmg+=1;s.dtype='normal';s.look='glow'}},
+            {n:'Ultimate Disc',c:1800,d:'Throws 2 discs, +1 damage, +10 pierce.',f:s=>{s.count=2;s.dmg+=1;s.pierce+=10}}],
+           [{n:'Faster Throw',c:150,d:'Throws 25% faster.',f:s=>{s.reload*=.75}},
+            {n:'Long Throw',c:200,d:'+40 range.',f:s=>{s.range+=40}},
+            {n:'Disc Storm',c:1400,d:'Throws much, much faster.',f:s=>{s.reload*=.4}}]]},
+  storm:{name:'Storm Chaser',cost:450,desc:'Calls down prairie lightning that chains from ball to ball. Lightning hits every ball type.',
+    base:{kind:'bolt',range:135,reload:1.3,dmg:1,chains:3,jump:70,dtype:'normal',count:1,bossMult:1},
+    paths:[[{n:'Bigger Bolts',c:250,d:'Lightning chains to 6 balls.',f:s=>{s.chains=6}},
+            {n:'Supercell',c:700,d:'2 damage, chains to 9 balls.',f:s=>{s.dmg=2;s.chains=9}},
+            {n:'Tornado Alley',c:3000,d:'4 damage, 14 chains, double damage to cranes.',f:s=>{s.dmg=4;s.chains=14;s.bossMult=2;s.jump=90}}],
+           [{n:'Doppler Radar',c:200,d:'+30 range.',f:s=>{s.range+=30}},
+            {n:'Rapid Strikes',c:400,d:'Strikes 30% faster.',f:s=>{s.reload*=.7}},
+            {n:'Derecho',c:2000,d:'Two bolts at once, much faster.',f:s=>{s.count=2;s.reload*=.6}}]]},
+  spikes:{name:'Barbed Wire Spool',cost:850,desc:'Drops piles of barbed wire on the road during rounds. Each barb pops one layer. A great last line of defense.',
+    base:{kind:'spikes',range:110,reload:2.2,dmg:1,spikes:5,life:20,dtype:'sharp',mine:false},
+    paths:[[{n:'Bigger Piles',c:400,d:'10 barbs per pile.',f:s=>{s.spikes=10}},
+            {n:'Steel Barbs',c:800,d:'2 damage per barb, cuts Concrete.',f:s=>{s.dmg=2;s.dtype='normal'}},
+            {n:'Wire Storm',c:3500,d:'Huge piles, dropped very fast.',f:s=>{s.reload*=.35;s.spikes=14}}],
+           [{n:'Faster Spool',c:450,d:'Drops piles 30% faster.',f:s=>{s.reload*=.7}},
+            {n:'Long-Lasting Wire',c:300,d:'Piles last 50s, +30 range.',f:s=>{s.life=50;s.range+=30}},
+            {n:'Wire Mines',c:1600,d:'Used-up piles explode for 3 damage.',f:s=>{s.mine=true}}]]},
+  band:{name:'Husker Pep Band',cost:1000,desc:'The marching band fires up every tower in its circle (+10% range). It does not attack by itself.',
+    base:{kind:'buff',range:120,bRange:.1,bRate:1,bPierce:0,bDmg:0,bArmor:false,income:0},
+    paths:[[{n:'Drumline',c:400,d:'Nearby towers attack 15% faster.',f:s=>{s.bRate=.85}},
+            {n:'Fight Song',c:1500,d:'Nearby towers 25% faster, +1 pierce.',f:s=>{s.bRate=.75;s.bPierce=1}},
+            {n:'Tunnel Walk',c:6000,d:'Nearby towers 40% faster, +1 damage.',f:s=>{s.bRate=.6;s.bPierce=1;s.bDmg=1}}],
+           [{n:'Brass Section',c:300,d:'+40 band range.',f:s=>{s.range+=40}},
+            {n:'Halftime Show',c:1200,d:'Nearby towers can hit Concrete.',f:s=>{s.bArmor=true}},
+            {n:'Booster Club',c:3000,d:'Band raises $250 every round.',f:s=>{s.income+=250}}]]},
+  duster:{name:'Crop Duster',cost:800,desc:'A biplane that loops around its airstrip, spraying darts in every direction. Can be placed anywhere.',
+    base:{kind:'plane',range:110,fly:150,reload:1.3,dmg:1,pierce:3,speed:450,reach:110,count:8,dtype:'sharp',pr:5,look:'dart',bomb:false},
+    paths:[[{n:'Wide Spray',c:500,d:'12 darts per spray, +1 pierce.',f:s=>{s.count=12;s.pierce+=1}},
+            {n:'Hay Drop',c:900,d:'Also drops exploding hay bales.',f:s=>{s.bomb=true}},
+            {n:'Crop Circle',c:5000,d:'16 darts, +2 damage, hits Concrete.',f:s=>{s.count=16;s.dmg+=2;s.dtype='normal'}}],
+           [{n:'Faster Engine',c:400,d:'Flies faster, sprays 20% faster.',f:s=>{s.fly=260;s.reload*=.8}},
+            {n:'Big Loop',c:300,d:'+50 loop size.',f:s=>{s.range+=50}},
+            {n:'Twin Engine',c:2500,d:'Sprays twice as fast.',f:s=>{s.reload*=.5}}]]},
+  mortar:{name:'Silo Mortar',cost:750,desc:'Lobs explosive shells anywhere on the map. Splash breaks Concrete. A little inaccurate.',
+    base:{kind:'mortar',range:99999,reload:2,dmg:1,splash:42,splashPierce:20,scatter:22,bossMult:1},
+    paths:[[{n:'Bigger Shells',c:400,d:'Bigger blasts.',f:s=>{s.splash+=15;s.splashPierce+=15}},
+            {n:'Heavy Shells',c:700,d:'+2 damage.',f:s=>{s.dmg+=2}},
+            {n:'The Big One',c:4000,d:'+6 damage, giant blast, triple vs cranes.',f:s=>{s.dmg+=6;s.splash+=30;s.bossMult=3}}],
+           [{n:'Rapid Reload',c:350,d:'Fires 25% faster.',f:s=>{s.reload*=.75}},
+            {n:'Precision Aim',c:300,d:'Shells land almost dead-on.',f:s=>{s.scatter=4}},
+            {n:'Artillery Battery',c:2600,d:'Fires much faster.',f:s=>{s.reload*=.4}}]]}
+});
+const ORDER=['cob','frisbee','popper','hay','blizzard','syrup','kicker','duster','mortar','storm','bigred','spikes','farm','band'];
 const DIFF={easy:{label:'Easy',lives:200,cash:750,cost:.85},medium:{label:'Medium',lives:150,cash:650,cost:1},hard:{label:'Hard',lives:100,cash:600,cost:1.1}};
 const WIN_ROUND=40;
 function price(c){return Math.round(c*(G?DIFF[G.diff].cost:1)/5)*5;}
-function calcStats(t){const D=TOWERS[t.type];const s={...D.base};for(let i=0;i<t.a;i++)D.paths[0][i].f(s);for(let i=0;i<t.b;i++)D.paths[1][i].f(s);t.s=s;}
+function calcStats(t){const D=TOWERS[t.type];const s={...D.base};for(let i=0;i<t.a;i++)D.paths[0][i].f(s);for(let i=0;i<t.b;i++)D.paths[1][i].f(s);t.s=s;t.e=s;if(s.kind==='spikes'&&G)t.spots=pathSpots(t.x,t.y,s.range);}
+function pathSpots(x,y,range){const out=[];for(let d=0;d<G.map.total;d+=6){const[px,py]=posAt(G.map,d);if(px<0||px>W||py<0||py>H)continue;if(Math.hypot(px-x,py-y)<=range)out.push(d);}return out;}
+function computeBuffs(){
+  const bands=G.towers.filter(t=>t.s.kind==='buff');
+  for(const t of G.towers){
+    t.buffed=false;t.e=t.s;
+    if(!bands.length||t.s.kind==='farm'||t.s.kind==='buff')continue;
+    let r=0,rate=1,p=0,d=0,arm=false,any=false;
+    for(const b of bands){if(Math.hypot(b.x-t.x,b.y-t.y)<=b.s.range){any=true;const bs=b.s;r=Math.max(r,bs.bRange);rate=Math.min(rate,bs.bRate);p=Math.max(p,bs.bPierce);d=Math.max(d,bs.bDmg);arm=arm||bs.bArmor;}}
+    if(!any)continue;
+    const e=Object.assign({},t.s);
+    if(e.range&&e.range<5000&&e.kind!=='plane')e.range=Math.round(e.range*(1+r));
+    if(e.reach)e.reach=Math.round(e.reach*(1+r));
+    if(e.reload)e.reload*=rate;
+    if(e.pierce)e.pierce+=p;
+    if(e.splashPierce)e.splashPierce+=p*4;
+    if(e.spikes)e.spikes+=p*2;
+    if(e.dmg)e.dmg+=d;
+    if(arm&&(e.dtype==='sharp'||e.dtype==='cold')){e.dtype='normal';e.freezeArmored=true;}
+    t.e=e;t.buffed=true;
+  }
+}
 
 /* ---------- waves ---------- */
 function genRound(n){
@@ -332,7 +403,7 @@ function getBG(k){return bgCache[k]||(bgCache[k]=renderBG(MAPS[k],2));}
 
 function newGame(mapKey,diff){
   const D=DIFF[diff];
-  G={map:MAPS[mapKey],mapKey,diff,lives:D.lives,cash:D.cash,round:1,roundActive:false,spawn:[],rt:0,enemies:[],towers:[],projs:[],fx:[],cracks:[],speed:1,over:false,freeplay:false,time:0,shake:0,nextId:1,impact:0};
+  G={map:MAPS[mapKey],mapKey,diff,lives:D.lives,cash:D.cash,round:1,roundActive:false,spawn:[],rt:0,enemies:[],towers:[],projs:[],fx:[],piles:[],cracks:[],speed:1,over:false,freeplay:false,time:0,shake:0,nextId:1,impact:0};
   bg=getBG(mapKey);placing=null;sel=null;
   $('#mapname').textContent=G.map.name+' · '+D.label;
   $('#speedBtn').textContent='Speed 1×';
@@ -344,7 +415,7 @@ function startRound(){if(!G||G.roundActive||G.over)return;G.spawn=genRound(G.rou
 function endRound(){
   G.roundActive=false;
   let bonus=100+G.round,farm=0;
-  for(const t of G.towers)if(t.s.kind==='farm'){farm+=t.s.income;fxText(t.x,t.y-24,'+$'+t.s.income,'#9be37a');}
+  for(const t of G.towers)if(t.s.income){farm+=t.s.income;fxText(t.x,t.y-24,'+$'+t.s.income,'#9be37a');}
   G.cash+=bonus+farm;
   fxText(W/2,40,'Round '+G.round+' cleared! +$'+(bonus+farm),'#fff',2);
   if(G.round>=WIN_ROUND&&!G.freeplay){G.round++;showWin();return;}
@@ -392,7 +463,8 @@ function pick(t,list){
 }
 function fireProj(t,a,s,extra){G.projs.push(Object.assign({k:'dart',x:t.x+Math.cos(a)*14,y:t.y+Math.sin(a)*14,vx:Math.cos(a)*s.speed,vy:Math.sin(a)*s.speed,a,life:(s.range*1.25)/s.speed,pierce:s.pierce,dmg:s.dmg,dtype:s.dtype,bossMult:s.bossMult||1,r:s.pr,hit:new Set(),tw:t,look:s.look},extra||{}));}
 function updateTower(t,dt){
-  const s=t.s;if(s.kind==='farm')return;
+  const s=t.e||t.s;if(s.kind==='farm'||s.kind==='buff')return;
+  if(s.kind==='plane'){t.th=(t.th||0)+dt*s.fly/s.range;t.px=t.x+Math.cos(t.th)*s.range;t.py=t.y+Math.sin(t.th)*s.range;t.pang=t.th+Math.PI/2;}
   t.recoil=Math.max(0,t.recoil-dt);
   t.cd-=dt;if(t.cd>0)return;
   switch(s.kind){
@@ -416,7 +488,49 @@ function updateTower(t,dt){
     case 'glue':{const l=candidates(t,s.range).filter(e=>!ET[e.type].boss||s.glueBoss);if(!l.length)return;
       const fresh=l.filter(e=>e.slowT<=0);const e=pick(t,fresh.length?fresh:l);t.ang=Math.atan2(e.y-t.y,e.x-t.x);t.cd=s.reload;t.recoil=.1;
       fireProj(t,t.ang,s,{k:'glue',slow:s.slow,slowDur:s.slowDur,dot:s.dot,dotRate:s.dotRate,splash:s.splash,glueBoss:s.glueBoss,look:'syrup'});break;}
+    case 'boomer':{const e=pick(t,candidates(t,s.range));if(!e)return;const beta=Math.atan2(e.y-t.y,e.x-t.x);t.ang=beta;t.cd=s.reload;t.recoil=.1;
+      const R=s.range/2,off=Math.acos(Math.min(1,Math.hypot(e.x-t.x,e.y-t.y)/(2*R)));
+      for(let k=0;k<s.count;k++){const dir=k%2?-1:1;G.projs.push({k:'boomer',ox:t.x,oy:t.y,a:beta-dir*off,R,dir,th:0,w:s.speed/R,x:t.x,y:t.y,pierce:s.pierce,dmg:s.dmg,dtype:s.dtype,bossMult:1,r:s.pr,hit:new Set(),tw:t,look:s.look,spin:0});}
+      break;}
+    case 'bolt':{const l=candidates(t,s.range);const e=pick(t,l);if(!e)return;t.ang=Math.atan2(e.y-t.y,e.x-t.x);t.cd=s.reload;t.recoil=.15;
+      chainBolt(t,e,s);if(s.count>1){const o=l.filter(x=>x!==e&&!x.dead);if(o.length)chainBolt(t,o[Math.floor(Math.random()*o.length)],s);}break;}
+    case 'spikes':{if(!G.roundActive||!t.spots||!t.spots.length)return;if(G.piles.filter(p=>p.tw===t).length>=40)return;t.cd=s.reload;t.recoil=.15;
+      const[px,py]=posAt(G.map,t.spots[Math.floor(Math.random()*t.spots.length)]);
+      G.piles.push({x:px+(Math.random()-.5)*14,y:py+(Math.random()-.5)*14,sx:t.x,sy:t.y,fly:.3,spikes:s.spikes,max:s.spikes,dmg:s.dmg,dtype:s.dtype,life:s.life,mine:s.mine,tw:t,hit:new Set(),seed:Math.random()*9});break;}
+    case 'plane':{if(!G.enemies.some(onScreen))return;t.cd=s.reload;
+      for(let k=0;k<s.count;k++)fireProj(t,t.th+k/s.count*Math.PI*2,s,{x:t.px,y:t.py,life:s.reach/s.speed});
+      if(s.bomb)G.projs.push({k:'bomb',x:t.px,y:t.py,tx:t.px,ty:t.py,speed:1,r:1,dmg:2,splash:45,sp:20,bossMult:1,tw:t,rot:0});break;}
+    case 'mortar':{const e=pick(t,candidates(t,s.range));if(!e)return;t.ang=Math.atan2(e.y-t.y,e.x-t.x);t.cd=s.reload;t.recoil=.2;
+      const lead=e.frozenT>0?0:ET[e.type].speed*.6*(e.slowT>0?1-e.slowF:1);const[lx,ly]=posAt(G.map,Math.min(G.map.total,e.dist+lead));
+      const tx=lx+(Math.random()-.5)*2*s.scatter,ty=ly+(Math.random()-.5)*2*s.scatter;
+      G.projs.push({k:'shell',x0:t.x,y0:t.y,tx,ty,x:t.x,y:t.y,t:0,d:.6,dmg:s.dmg,splash:s.splash,sp:s.splashPierce,bossMult:s.bossMult,tw:t});break;}
   }
+}
+function chainBolt(t,start,s){
+  let cur=start;const hit=new Set(),pts=[[t.x,t.y-16]];
+  for(let i=0;i<s.chains&&cur;i++){
+    hit.add(cur.id);const cx=cur.x,cy=cur.y;pts.push([cx,cy]);
+    damageEnemy(cur,s.dmg*(ET[cur.type].boss?s.bossMult:1),s.dtype,t);
+    let nb=null,nd=s.jump;
+    for(const o of G.enemies){if(o.dead||hit.has(o.id)||!onScreen(o))continue;const d=Math.hypot(o.x-cx,o.y-cy);if(d<nd){nd=d;nb=o;}}
+    cur=nb;
+  }
+  G.fx.push({k:'bolt',pts,t:0,d:.22});
+}
+function updatePiles(dt){
+  for(const p of G.piles){
+    if(p.dead)continue;
+    if(p.fly>0){p.fly-=dt;continue;}
+    p.life-=dt;if(p.life<=0){p.dead=true;continue;}
+    for(const e of G.enemies){
+      if(e.dead||p.hit.has(e.id))continue;
+      if(Math.hypot(e.x-p.x,e.y-p.y)<ET[e.type].r+8){
+        p.hit.add(e.id);damageEnemy(e,p.dmg*(ET[e.type].boss?1:1),p.dtype,p.tw);
+        if(--p.spikes<=0){p.dead=true;if(p.mine)explode({x:p.x,y:p.y,splash:45,sp:20,dmg:3,bossMult:1,tw:p.tw});break;}
+      }
+    }
+  }
+  G.piles=G.piles.filter(p=>!p.dead);
 }
 function explode(p){
   G.fx.push({k:'boom',x:p.x,y:p.y,r:p.splash,t:0,d:.35});
@@ -424,6 +538,7 @@ function explode(p){
   for(const e of l)damageEnemy(e,p.dmg*(ET[e.type].boss?p.bossMult:1),'blast',p.tw);
 }
 function update(dt){
+  updateBanner(dt);
   G.time+=dt;G.shake=Math.max(0,G.shake-dt);G.impact=Math.max(0,G.impact-dt);
   if(G.roundActive){G.rt+=dt;while(G.spawn.length&&G.spawn[0].t<=G.rt){const s=G.spawn.shift();G.enemies.push(makeEnemy(s.type,0));}}
   const m=G.map;
@@ -443,7 +558,9 @@ function update(dt){
     }
     const p=posAt(m,e.dist);e.x=p[0];e.y=p[1];
   }
+  computeBuffs();
   for(const t of G.towers)updateTower(t,dt);
+  updatePiles(dt);
   for(const p of G.projs){
     if(p.dead)continue;
     if(p.k==='bomb'){
@@ -452,8 +569,15 @@ function update(dt){
       if(!boom)for(const e of G.enemies){if(!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<ET[e.type].r+p.r){boom=true;break;}}
       p.rot+=dt*8;if(boom){explode(p);p.dead=true;}continue;
     }
-    p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;
-    if(p.life<=0||p.x<-30||p.x>W+30||p.y<-30||p.y>H+30){p.dead=true;continue;}
+    if(p.k==='shell'){p.t+=dt;const k=Math.min(1,p.t/p.d);p.x=p.x0+(p.tx-p.x0)*k;p.y=p.y0+(p.ty-p.y0)*k;if(k>=1){p.x=p.tx;p.y=p.ty;explode(p);p.dead=true;}continue;}
+    if(p.k==='boomer'){
+      p.th+=p.w*dt;if(p.th>=Math.PI*2){p.dead=true;continue;}
+      const cx=p.ox+p.R*Math.cos(p.a),cy=p.oy+p.R*Math.sin(p.a),an=p.a+Math.PI+p.dir*p.th;
+      p.x=cx+p.R*Math.cos(an);p.y=cy+p.R*Math.sin(an);p.spin+=dt*20;
+    }else{
+      p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;
+      if(p.life<=0||p.x<-30||p.x>W+30||p.y<-30||p.y>H+30){p.dead=true;continue;}
+    }
     for(let i=0;i<G.enemies.length;i++){
       const e=G.enemies[i];if(e.dead||p.hit.has(e.id))continue;const T=ET[e.type];
       if(Math.hypot(e.x-p.x,e.y-p.y)<T.r+p.r){
@@ -565,7 +689,50 @@ function drawTower(c,type,x,y,ang,a,b,recoil,inc){
       c.strokeStyle='#fff';c.lineWidth=1.6;c.beginPath();c.arc(4,0,7.5,-.5,.5);c.stroke();
       circle(c,13,9,3.6,'#f5f1e7','#bbb',1);circle(c,13,-9,3.6,'#f5f1e7','#bbb',1);
       if(a>=3||b>=3)circle(c,0,0,21,null,'rgba(255,60,60,.8)',2.5);break;}
+    case 'frisbee':{pad(c,'#2b5797','#16305a');c.rotate(ang);c.translate(kick,0);
+      c.strokeStyle=SKIN;c.lineWidth=4;c.lineCap='round';c.beginPath();c.moveTo(0,9);c.lineTo(10,11);c.moveTo(0,-9);c.lineTo(7,-10);c.stroke();
+      if(!recoil){circle(c,13,12,6,a>=2?'#7cf7ff':'#d32f2f','#fff',1.5);}
+      ell(c,0,0,8,13,0,'#8e8e8e','#555',1.5);c.fillStyle='#c8102e';c.fillRect(-7,-2,3,4);
+      circle(c,0,0,7,'#c8102e','#7f0a1d',1.2);circle(c,-3,0,2.2,'#fff');
+      if(a>=3||b>=3)circle(c,0,0,21,null,'rgba(124,247,255,.8)',2);break;}
+    case 'storm':{pad(c,'#37474f','#1c262b');
+      c.save();c.rotate(ang);c.translate(kick,0);ell(c,0,0,8,13,0,'#fbc02d','#a07800',1.5);
+      c.strokeStyle='#fbc02d';c.lineWidth=4;c.lineCap='round';c.beginPath();c.moveTo(0,9);c.lineTo(12,6);c.stroke();circle(c,14,6,2.5,SKIN);
+      circle(c,0,0,7,'#f9a825','#a07800',1);circle(c,1,0,4,SKIN);c.restore();
+      c.fillStyle=a>=3?'#263238':'#607d8b';for(const[cx,cy,cr]of[[-8,-14,6],[0,-17,8],[8,-14,6],[0,-11,6]])circle(c,cx,cy,cr,c.fillStyle);
+      c.strokeStyle='#ffeb3b';c.lineWidth=2;c.beginPath();c.moveTo(2,-10);c.lineTo(-2,-4);c.lineTo(2,-4);c.lineTo(-1,2);c.stroke();break;}
+    case 'spikes':{pad(c,'#5d4037','#3e2723');c.rotate(recoil?recoil*6:0);
+      circle(c,0,0,14,'#a1887f','#5d4037',2);
+      for(let i=0;i<4;i++){c.strokeStyle=i%2?'#9e9e9e':'#cfd8dc';c.lineWidth=2;c.beginPath();c.arc(0,0,11-i*1.8,0,Math.PI*2);c.stroke();}
+      c.strokeStyle='#eceff1';c.lineWidth=1.3;for(let i=0;i<10;i++){const aa=i*Math.PI/5;c.beginPath();c.moveTo(Math.cos(aa)*8,Math.sin(aa)*8);c.lineTo(Math.cos(aa+.25)*12,Math.sin(aa+.25)*12);c.stroke();}
+      circle(c,0,0,4,'#6d4c41','#3e2723',1.5);
+      if(b>=3)circle(c,0,0,21,null,'rgba(255,120,30,.8)',2);break;}
+    case 'band':{pad(c,'#c8102e','#7f0a1d');
+      ell(c,0,2,9,13,0,'#b71c1c','#fff',1.5);
+      circle(c,0,2,15,null,'#e8c766',4);circle(c,10,-10,7,'#f2d27a','#a8843a',1.5);circle(c,10,-10,4,'#8a6a20');
+      circle(c,0,0,7,'#fff','#ccc',1);ell(c,0,-6,2.5,5,0,'#c8102e');
+      if(a>=3||b>=3){c.fillStyle='#e8c766';c.font='bold 12px system-ui';c.textAlign='center';c.fillText('♪',-13,-9);}break;}
+    case 'duster':{ell(c,2,4,20,15,0,'rgba(0,0,0,.25)');c.fillStyle='#616161';rr(c,-18,-12,36,24,4);c.fill();c.strokeStyle='#3a3a3a';c.lineWidth=2;c.stroke();
+      c.strokeStyle='#fff';c.lineWidth=2;c.setLineDash([5,4]);c.beginPath();c.moveTo(-14,0);c.lineTo(14,0);c.stroke();c.setLineDash([]);
+      c.fillStyle='#ff6d00';c.beginPath();c.moveTo(-16,-12);c.lineTo(-6,-15);c.lineTo(-16,-18);c.fill();c.fillStyle='#555';c.fillRect(-17,-19,1.5,9);
+      if(inc==='icon')drawPlane(c,4,2,-.6,.85);break;}
+    case 'mortar':{pad(c,'#556b2f','#2f3d18');
+      circle(c,0,0,13,'#b0bec5','#607d8b',2);for(let i=1;i<3;i++)circle(c,0,0,13-i*4,null,'rgba(96,125,139,.7)',1);
+      c.rotate(ang);c.translate(kick,0);c.fillStyle='#37474f';rr(c,-4,-4.5,18,9,3);c.fill();circle(c,14,0,4.5,'#263238');circle(c,14,0,2.5,'#111');
+      if(a>=3)circle(c,0,0,21,null,'rgba(255,190,60,.8)',2);break;}
   }
+  c.restore();
+}
+function drawPlane(c,x,y,ang,sc,col,stripe){
+  col=col||'#f2c200';stripe=stripe||'#c8102e';
+  c.save();c.translate(x+8,y+10);c.rotate(ang);c.scale(sc||1,sc||1);ell(c,0,0,15,4,0,'rgba(0,0,0,.22)');c.fillStyle='rgba(0,0,0,.22)';c.fillRect(-3,-17,7,34);c.restore();
+  c.save();c.translate(x,y);c.rotate(ang);c.scale(sc||1,sc||1);
+  c.fillStyle=col;rr(c,-4,-18,8,36,3);c.fill();c.strokeStyle='rgba(0,0,0,.35)';c.lineWidth=1;c.stroke();
+  c.fillStyle=stripe;c.fillRect(-4,-18,8,4);c.fillRect(-4,14,8,4);
+  ell(c,0,0,15,4,0,col,'rgba(0,0,0,.35)',1);
+  c.fillStyle=col;rr(c,-15,-7,5,14,2);c.fill();c.fillStyle=stripe;c.fillRect(-13,-1,10,2);
+  circle(c,4,0,2.5,'#5d4037');
+  c.fillStyle='rgba(60,60,60,.5)';c.fillRect(14,-8,2,16);
   c.restore();
 }
 
@@ -594,7 +761,11 @@ function drawBall(c,e,x,y,type,scale){
 
 /* ---------- drawing: projectiles & fx ---------- */
 function drawProj(c,p){
+  if(p.k==='shell'){const k=p.t/p.d,h=Math.sin(k*Math.PI)*70,s=1+Math.sin(k*Math.PI)*.8;
+    c.strokeStyle='rgba(255,40,40,.8)';c.lineWidth=1.5;circle(c,p.tx,p.ty,8,null,'rgba(255,40,40,.7)',1.5);c.beginPath();c.moveTo(p.tx-11,p.ty);c.lineTo(p.tx+11,p.ty);c.moveTo(p.tx,p.ty-11);c.lineTo(p.tx,p.ty+11);c.stroke();
+    ell(c,p.x,p.y,4*s,2*s,0,'rgba(0,0,0,.3)');circle(c,p.x,p.y-h,4*s,'#37474f','#111',1);return;}
   c.save();c.translate(p.x,p.y);
+  if(p.k==='boomer'){c.rotate(p.spin);circle(c,0,0,p.look==='glow'?10:0,p.look==='glow'?'rgba(124,247,255,.35)':null);circle(c,0,0,6.5,p.look==='glow'?'#7cf7ff':'#d32f2f','#fff',1.5);c.strokeStyle='rgba(255,255,255,.8)';c.lineWidth=1;c.beginPath();c.arc(0,0,3.5,0,2);c.stroke();c.restore();return;}
   if(p.k==='bomb'){c.rotate(p.rot);c.fillStyle='#e2c15a';rr(c,-7,-6,14,12,3);c.fill();c.strokeStyle='#a3842a';c.lineWidth=1;c.beginPath();c.moveTo(-7,-1);c.lineTo(7,-1);c.moveTo(-7,3);c.lineTo(7,3);c.stroke();c.restore();return;}
   c.rotate(p.a);
   switch(p.look){
@@ -606,6 +777,7 @@ function drawProj(c,p){
     case 'red':c.fillStyle='#ff2a2a';rr(c,-6,-2,12,4,2);c.fill();break;
     case 'laser':c.fillStyle='rgba(255,60,60,.35)';c.fillRect(-12,-3.5,24,7);c.fillStyle='#fff';c.fillRect(-11,-1,22,2);break;
     case 'plasma':circle(c,0,0,6,'rgba(255,40,40,.35)');circle(c,0,0,3.5,'#fff','#ff3030',2);break;
+    case 'dart':c.strokeStyle='#263238';c.lineWidth=2;c.beginPath();c.moveTo(-5,0);c.lineTo(5,0);c.stroke();c.fillStyle='#8bc34a';c.fillRect(-6,-1.5,3,3);break;
     default:circle(c,0,0,3,'#fff');
   }
   c.restore();
@@ -621,11 +793,50 @@ function drawFx(c,f){
       c.fillStyle='#e2c15a';for(let i=0;i<8;i++){const a=i*Math.PI/4;c.fillRect(f.x+Math.cos(a)*f.r*k-1,f.y+Math.sin(a)*f.r*k-4,2,8);}c.restore();break;}
     case 'splat':circle(c,f.x,f.y,f.r*k,`rgba(212,160,23,${.4*(1-k)})`);break;
     case 'kick':{const x=f.x+(f.x2-f.x)*k,y=f.y+(f.y2-f.y)*k-Math.sin(k*Math.PI)*30;c.save();c.translate(x,y);c.rotate(k*12);ell(c,0,0,6,3.8,0,'#7b4a24','#3e2410',1);c.strokeStyle='#fff';c.lineWidth=1;c.beginPath();c.moveTo(-2,0);c.lineTo(2,0);c.stroke();c.restore();break;}
+    case 'bolt':{c.save();c.globalAlpha=1-k;c.lineJoin='round';
+      for(const[w,col]of[[6,'rgba(120,180,255,.45)'],[2,'#fff']]){c.strokeStyle=col;c.lineWidth=w;c.beginPath();
+        f.pts.forEach(([x,y],i)=>{if(!i){c.moveTo(x,y);return;}const[px,py]=f.pts[i-1];for(let j=1;j<=4;j++){const tt=j/4;c.lineTo(px+(x-px)*tt+(j<4?(Math.random()-.5)*12:0),py+(y-py)*tt+(j<4?(Math.random()-.5)*12:0));}});c.stroke();}
+      c.restore();break;}
     case 'ping':circle(c,f.x,f.y,6+k*6,null,`rgba(220,220,220,${1-k})`,2);break;
     case 'text':{c.save();c.globalAlpha=Math.min(1,(1-k)*2);c.font=`bold ${f.d>1.5?22:14}px system-ui`;c.textAlign='center';c.fillStyle='rgba(0,0,0,.6)';c.fillText(f.text,f.x+1.5,f.y-k*20+1.5);c.fillStyle=f.col;c.fillText(f.text,f.x,f.y-k*20);c.restore();break;}
   }
 }
 
+function drawPile(c,p){
+  let x=p.x,y=p.y;
+  if(p.fly>0){const k=1-p.fly/.3;x=p.sx+(p.x-p.sx)*k;y=p.sy+(p.y-p.sy)*k-Math.sin(k*Math.PI)*25;}
+  const n=Math.max(2,Math.ceil(6*p.spikes/p.max));
+  c.save();c.translate(x,y);c.globalAlpha=p.life<3?Math.max(.2,p.life/3):1;
+  ell(c,1,2,9,5,0,'rgba(0,0,0,.25)');
+  c.strokeStyle=p.dtype==='normal'?'#90a4ae':'#b0bec5';c.lineWidth=1.4;
+  for(let i=0;i<n;i++){const a=p.seed+i*2.1;c.beginPath();c.ellipse(Math.cos(a)*3,Math.sin(a)*2,6,3,a,0,Math.PI*2);c.stroke();}
+  c.strokeStyle='#eceff1';c.lineWidth=1;for(let i=0;i<n;i++){const a=p.seed*2+i*1.3;c.beginPath();c.moveTo(Math.cos(a)*4,Math.sin(a)*3);c.lineTo(Math.cos(a)*8,Math.sin(a)*6);c.stroke();}
+  if(p.mine)circle(c,0,0,2.5,'#ff5722');
+  c.restore();
+}
+/* ---------- banner plane (decor) ---------- */
+const BANNER_TEXT='Dan Osborn Political Ad';
+const banner={x:0,y:0,dir:1,active:false,wait:4};
+function updateBanner(dt){
+  if(!banner.active){banner.wait-=dt;if(banner.wait<=0){banner.active=true;banner.dir=Math.random()<.5?1:-1;banner.y=60+Math.random()*(H-120);banner.x=banner.dir>0?-60:W+360;}return;}
+  banner.x+=banner.dir*95*dt;
+  if((banner.dir>0&&banner.x>W+360)||(banner.dir<0&&banner.x<-60)){banner.active=false;banner.wait=25+Math.random()*20;}
+}
+function drawBanner(c){
+  if(!banner.active)return;
+  const d=banner.dir,px=banner.x,py=banner.y,t=performance.now()/1000;
+  c.save();c.font='bold 15px system-ui';const tw=c.measureText(BANNER_TEXT).width+28,bh=26;
+  const bx=d>0?px-40-tw:px+40;
+  c.fillStyle='rgba(0,0,0,.18)';c.fillRect(bx+10,py-bh/2+14,tw,bh);
+  c.strokeStyle='#444';c.lineWidth=1;c.beginPath();c.moveTo(px-d*14,py);c.lineTo(d>0?bx+tw:bx,py-bh/2);c.moveTo(px-d*14,py);c.lineTo(d>0?bx+tw:bx,py+bh/2);c.stroke();
+  c.beginPath();const seg=12;
+  for(let i=0;i<=seg;i++){const xx=bx+tw*i/seg,yy=py-bh/2+Math.sin(t*6+i*.8)*2.5*(d>0?1-i/seg:i/seg);i?c.lineTo(xx,yy):c.moveTo(xx,yy);}
+  for(let i=seg;i>=0;i--){const xx=bx+tw*i/seg,yy=py+bh/2+Math.sin(t*6+i*.8)*2.5*(d>0?1-i/seg:i/seg);c.lineTo(xx,yy);}
+  c.closePath();c.fillStyle='#fffdf5';c.fill();c.strokeStyle='#c8102e';c.lineWidth=2;c.stroke();
+  c.fillStyle='#c8102e';c.textAlign='center';c.textBaseline='middle';c.fillText(BANNER_TEXT,bx+tw/2,py+1);
+  c.restore();
+  drawPlane(c,px,py,d>0?0:Math.PI,1,'#ffffff','#1e5aa8');
+}
 /* ---------- render ---------- */
 function render(){
   ctx.save();ctx.clearRect(0,0,W,H);
@@ -634,19 +845,22 @@ function render(){
   if(!G){ctx.restore();return;}
   if(G.cracks.length){ctx.strokeStyle='rgba(25,15,10,.85)';ctx.lineWidth=2;ctx.lineJoin='miter';for(const pts of G.cracks){ctx.beginPath();pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();}}
   if(G.impact>0){const[ex,ey]=G.map.end;circle(ctx,ex,ey,40*(1-G.impact/.4)+10,`rgba(255,80,40,${G.impact})`);}
-  if(sel&&sel.s.range&&sel.s.range<5000)circle(ctx,sel.x,sel.y,sel.s.range,'rgba(255,255,255,.12)','rgba(255,255,255,.6)',1.5);
+  if(sel){const se=sel.e||sel.s;if(se.range&&se.range<5000){if(se.kind==='plane'){ctx.setLineDash([6,6]);circle(ctx,sel.x,sel.y,se.range,null,'rgba(255,255,255,.7)',1.5);ctx.setLineDash([]);}else circle(ctx,sel.x,sel.y,se.range,'rgba(255,255,255,.12)','rgba(255,255,255,.6)',1.5);}}
   for(const t of G.towers)if(t.type==='farm')drawTower(ctx,'farm',t.x,t.y,0,t.a,t.b,0,true);
+  for(const p of G.piles)drawPile(ctx,p);
   const es=G.enemies.slice().sort((a,b)=>a.dist-b.dist);
   for(const e of es){const bob=Math.sin(G.time*6+e.id)*1.5;drawBall(ctx,e,e.x,e.y+bob,e.type);}
   const ts=G.towers.filter(t=>t.type!=='farm').sort((a,b)=>a.y-b.y);
-  for(const t of ts)drawTower(ctx,t.type,t.x,t.y,t.ang,t.a,t.b,t.recoil);
+  for(const t of ts){drawTower(ctx,t.type,t.x,t.y,t.ang,t.a,t.b,t.recoil);if(t.buffed){ctx.fillStyle='#e8c766';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.fillText('♪',t.x+15,t.y-12);}}
   if(sel){ctx.strokeStyle='#e8c766';ctx.lineWidth=2;ctx.setLineDash([4,3]);ctx.beginPath();ctx.arc(sel.x,sel.y,sel.type==='farm'?30:22,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
   for(const p of G.projs)drawProj(ctx,p);
   for(const f of G.fx)drawFx(ctx,f);
+  for(const t of G.towers)if(t.s.kind==='plane'&&t.px!==undefined)drawPlane(ctx,t.px,t.py,t.pang,1,t.a>=3?'#e53935':'#f2c200',t.a>=3?'#fff':'#c8102e');
+  drawBanner(ctx);
   if(placing&&mouse.in){
     const ok=validSpot(mouse.x,mouse.y,placing)&&G.cash>=price(TOWERS[placing].cost);const rg=TOWERS[placing].base.range;
     if(rg&&rg<5000)circle(ctx,mouse.x,mouse.y,rg,ok?'rgba(255,255,255,.15)':'rgba(255,60,60,.2)',ok?'rgba(255,255,255,.7)':'rgba(255,60,60,.8)',1.5);
-    ctx.globalAlpha=.75;drawTower(ctx,placing,mouse.x,mouse.y,-Math.PI/2,0,0,0);ctx.globalAlpha=1;
+    ctx.globalAlpha=.75;drawTower(ctx,placing,mouse.x,mouse.y,-Math.PI/2,0,0,0,'icon');ctx.globalAlpha=1;
     if(!ok){ctx.strokeStyle='#ff3b3b';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(mouse.x-8,mouse.y-8);ctx.lineTo(mouse.x+8,mouse.y+8);ctx.moveTo(mouse.x+8,mouse.y-8);ctx.lineTo(mouse.x-8,mouse.y+8);ctx.stroke();}
   }
   ctx.restore();
@@ -657,7 +871,7 @@ function buildTowerButtons(){
   const box=$('#towers');box.innerHTML='';
   ORDER.forEach((k,i)=>{
     const D=TOWERS[k],b=document.createElement('button');b.className='tbtn';b.dataset.t=k;b.title=`${D.name} (${i+1})`;
-    const ic=document.createElement('canvas');ic.width=108;ic.height=108;const c=ic.getContext('2d');c.scale(2,2);drawTower(c,k,27,28,-Math.PI/4,0,0,0);
+    const ic=document.createElement('canvas');ic.width=108;ic.height=108;const c=ic.getContext('2d');c.scale(2,2);drawTower(c,k,27,28,-Math.PI/4,0,0,0,'icon');
     b.appendChild(ic);b.insertAdjacentHTML('beforeend',`<div>${D.name}</div><div class="c">$${price(D.cost)}</div>`);
     b.onclick=()=>{if(!G||G.over)return;placing=placing===k?null:k;sel=null;buildInfo();};
     b.onmouseenter=()=>{hoverType=k;if(!sel&&!placing)buildInfo();};
@@ -668,6 +882,10 @@ function buildTowerButtons(){
 function statLine(s){
   const out=[];
   if(s.kind==='farm')return`Income: <b>$${s.income}</b> per round`;
+  if(s.kind==='buff'){const b=['Range '+s.range,'+'+Math.round(s.bRange*100)+'% tower range'];if(s.bRate<1)b.push(Math.round((1/s.bRate-1)*100)+'% faster attacks');if(s.bPierce)b.push('+'+s.bPierce+' pierce');if(s.bDmg)b.push('+'+s.bDmg+' damage');if(s.bArmor)b.push('hits Concrete');if(s.income)b.push('$'+s.income+'/round');return b.join(' · ');}
+  if(s.kind==='spikes')return`Range ${s.range} · ${s.spikes} barbs/pile · Dmg ${s.dmg} · 1 pile / ${s.reload.toFixed(1)}s`;
+  if(s.kind==='plane')return`Loop ${s.range} · ${s.count} darts · Dmg ${s.dmg} · ${(1/s.reload).toFixed(1)} sprays/sec`;
+  if(s.kind==='bolt')out.push(s.chains+' chains');
   if(s.range&&s.range<5000)out.push('Range '+s.range);else if(s.range)out.push('Range: whole map');
   if(s.dmg)out.push('Dmg '+s.dmg);
   if(s.reload)out.push((1/s.reload).toFixed(1)+' /sec');
@@ -679,9 +897,9 @@ function buildInfo(){
   const el=$('#info');
   if(G&&sel){
     const t=sel,D=TOWERS[t.type];
-    const aimable=['proj','bomb','hitscan','glue'].includes(t.s.kind);
-    el.innerHTML=`<div class="ihead"><b>${D.name}</b><span style="color:var(--muted)">Pops: <span id="pops">${t.pops}</span></span></div>
-      <p>${statLine(t.s)}</p>
+    const aimable=['proj','bomb','hitscan','glue','boomer','bolt','mortar'].includes(t.s.kind);
+    el.innerHTML=`<div class="ihead"><b>${D.name}</b><span style="color:var(--muted)">${t.s.kind==='buff'?'':`Pops: <span id="pops">${t.pops}</span>`}</span></div>
+      <p>${statLine(t.e||t.s)}${t.buffed?' <span style="color:var(--gold)">♪ band boost</span>':''}</p>
       ${aimable?`<div class="tgt">${['first','last','strong','close'].map(m=>`<button data-m="${m}" class="${t.target===m?'on':''}">${m[0].toUpperCase()+m.slice(1)}</button>`).join('')}</div>`:''}
       <div class="ups">${[0,1].map(p=>upCard(t,p)).join('')}</div>
       <button id="sellBtn" class="sell">Sell for $${sellValue(t)}</button>`;
@@ -695,7 +913,7 @@ function buildInfo(){
   el.innerHTML=`<div class="ihead"><b>How to play</b></div>
     <p>Wrecking balls are rolling toward a campus landmark. Place towers beside the road to smash them before they hit the building.</p>
     <p>Every hit knocks a ball down one layer: <b style="color:#ff6fbf">pink</b> → <b style="color:#ffd54a">gold</b> → <b style="color:#5fd16f">green</b> → <b style="color:#6ea8ff">blue</b> → <b style="color:#ff7a5c">rusty</b>. <b>Concrete</b> balls shrug off sharp attacks, so use hay bales, footballs or upgrades. <b>Mega</b> balls and <b>Crane</b> bosses take many hits.</p>
-    <div class="keys">Keys: 1–8 pick tower · Space start round · F speed · Esc cancel · Del sell</div>`;
+    <div class="keys">Keys: 1–9, 0 pick tower · Space start round · F speed · Esc cancel · Del sell</div>`;
 }
 function upCard(t,p){
   const D=TOWERS[t.type],lvl=p?t.b:t.a,pips=[0,1,2].map(i=>`<i class="${i<lvl?'on':''}"></i>`).join('');
@@ -768,7 +986,7 @@ window.addEventListener('keydown',e=>{
   else if(e.key===' '){e.preventDefault();startRound();}
   else if(e.key==='f'||e.key==='F')$('#speedBtn').click();
   else if((e.key==='Delete'||e.key==='Backspace')&&sel)sell(sel);
-  else if(/^[1-8]$/.test(e.key)){placing=ORDER[+e.key-1];sel=null;buildInfo();refreshButtons();}
+  else if(/^[0-9]$/.test(e.key)){placing=ORDER[e.key==='0'?9:+e.key-1];sel=null;buildInfo();refreshButtons();}
 });
 
 /* ---------- loop ---------- */
