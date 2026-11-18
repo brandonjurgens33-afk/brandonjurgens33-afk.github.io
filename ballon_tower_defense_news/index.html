@@ -404,7 +404,7 @@ function getBG(k){return bgCache[k]||(bgCache[k]=renderBG(MAPS[k],2));}
 function newGame(mapKey,diff){
   const D=DIFF[diff];
   G={map:MAPS[mapKey],mapKey,diff,lives:D.lives,cash:D.cash,round:1,roundActive:false,spawn:[],rt:0,enemies:[],towers:[],projs:[],fx:[],piles:[],cracks:[],speed:1,over:false,freeplay:false,time:0,shake:0,nextId:1,impact:0};
-  bg=getBG(mapKey);placing=null;sel=null;
+  bg=getBG(mapKey);placing=null;sel=null;resetBanner();
   $('#mapname').textContent=G.map.name+' · '+D.label;
   $('#speedBtn').textContent='Speed 1×';
   hideOverlay();buildTowerButtons();buildInfo();
@@ -538,7 +538,6 @@ function explode(p){
   for(const e of l)damageEnemy(e,p.dmg*(ET[e.type].boss?p.bossMult:1),'blast',p.tw);
 }
 function update(dt){
-  updateBanner(dt);
   G.time+=dt;G.shake=Math.max(0,G.shake-dt);G.impact=Math.max(0,G.impact-dt);
   if(G.roundActive){G.rt+=dt;while(G.spawn.length&&G.spawn[0].t<=G.rt){const s=G.spawn.shift();G.enemies.push(makeEnemy(s.type,0));}}
   const m=G.map;
@@ -816,26 +815,42 @@ function drawPile(c,p){
 }
 /* ---------- banner plane (decor) ---------- */
 const BANNER_TEXT='Dan Osborn Political Ad';
-const banner={x:0,y:0,dir:1,active:false,wait:4};
+// Banner flyover: Memorial Stadium map only, once every 60 real-time seconds, flying across the stadium.
+const BANNER_MAP='stadium',BANNER_EVERY=60;
+const banner={x:0,y:0,dir:1,active:false,timer:0};
+function resetBanner(){banner.active=false;banner.timer=0;}
 function updateBanner(dt){
-  if(!banner.active){banner.wait-=dt;if(banner.wait<=0){banner.active=true;banner.dir=Math.random()<.5?1:-1;banner.y=60+Math.random()*(H-120);banner.x=banner.dir>0?-60:W+360;}return;}
+  if(!G||G.mapKey!==BANNER_MAP){banner.active=false;return;}
+  banner.timer+=dt;
+  if(banner.timer>=BANNER_EVERY){banner.timer-=BANNER_EVERY;banner.active=true;banner.dir=Math.random()<.5?1:-1;banner.y=230+Math.random()*180;banner.x=banner.dir>0?-60:W+400;}
+  if(!banner.active)return;
   banner.x+=banner.dir*95*dt;
-  if((banner.dir>0&&banner.x>W+360)||(banner.dir<0&&banner.x<-60)){banner.active=false;banner.wait=25+Math.random()*20;}
+  if((banner.dir>0&&banner.x>W+400)||(banner.dir<0&&banner.x<-60))banner.active=false;
+}
+// Draws a waving banner towed behind a plane at (px,py) heading `ang`. Text stays upright.
+function drawTowedBanner(c,px,py,ang,fontPx){
+  const t=performance.now()/1000;
+  c.save();c.font=`bold ${fontPx}px system-ui`;
+  const tw=c.measureText(BANNER_TEXT).width+fontPx*1.8,bh=fontPx*1.75,gap=fontPx*2.6;
+  // shadow
+  c.save();c.translate(px+10,py+14);c.rotate(ang);c.fillStyle='rgba(0,0,0,.16)';c.fillRect(-gap-tw,-bh/2,tw,bh);c.restore();
+  c.translate(px,py);c.rotate(ang);
+  const bx=-gap-tw;
+  c.strokeStyle='#444';c.lineWidth=1;c.beginPath();c.moveTo(-14,0);c.lineTo(-gap,-bh/2);c.moveTo(-14,0);c.lineTo(-gap,bh/2);c.stroke();
+  const seg=12,wave=i=>Math.sin(t*6+i*.8)*fontPx*.17*(1-i/seg);
+  c.beginPath();
+  for(let i=0;i<=seg;i++){const xx=-gap-tw*i/seg,yy=-bh/2+wave(i);i?c.lineTo(xx,yy):c.moveTo(xx,yy);}
+  for(let i=seg;i>=0;i--){const xx=-gap-tw*i/seg,yy=bh/2+wave(i);c.lineTo(xx,yy);}
+  c.closePath();c.fillStyle='#fffdf5';c.fill();c.strokeStyle='#c8102e';c.lineWidth=2;c.stroke();
+  c.translate(bx+tw/2,1);if(Math.cos(ang)<0)c.rotate(Math.PI);
+  c.fillStyle='#c8102e';c.textAlign='center';c.textBaseline='middle';c.fillText(BANNER_TEXT,0,0);
+  c.restore();
 }
 function drawBanner(c){
   if(!banner.active)return;
-  const d=banner.dir,px=banner.x,py=banner.y,t=performance.now()/1000;
-  c.save();c.font='bold 15px system-ui';const tw=c.measureText(BANNER_TEXT).width+28,bh=26;
-  const bx=d>0?px-40-tw:px+40;
-  c.fillStyle='rgba(0,0,0,.18)';c.fillRect(bx+10,py-bh/2+14,tw,bh);
-  c.strokeStyle='#444';c.lineWidth=1;c.beginPath();c.moveTo(px-d*14,py);c.lineTo(d>0?bx+tw:bx,py-bh/2);c.moveTo(px-d*14,py);c.lineTo(d>0?bx+tw:bx,py+bh/2);c.stroke();
-  c.beginPath();const seg=12;
-  for(let i=0;i<=seg;i++){const xx=bx+tw*i/seg,yy=py-bh/2+Math.sin(t*6+i*.8)*2.5*(d>0?1-i/seg:i/seg);i?c.lineTo(xx,yy):c.moveTo(xx,yy);}
-  for(let i=seg;i>=0;i--){const xx=bx+tw*i/seg,yy=py+bh/2+Math.sin(t*6+i*.8)*2.5*(d>0?1-i/seg:i/seg);c.lineTo(xx,yy);}
-  c.closePath();c.fillStyle='#fffdf5';c.fill();c.strokeStyle='#c8102e';c.lineWidth=2;c.stroke();
-  c.fillStyle='#c8102e';c.textAlign='center';c.textBaseline='middle';c.fillText(BANNER_TEXT,bx+tw/2,py+1);
-  c.restore();
-  drawPlane(c,px,py,d>0?0:Math.PI,1,'#ffffff','#1e5aa8');
+  const ang=banner.dir>0?0:Math.PI;
+  drawTowedBanner(c,banner.x,banner.y,ang,15);
+  drawPlane(c,banner.x,banner.y,ang,1,'#ffffff','#1e5aa8');
 }
 /* ---------- render ---------- */
 function render(){
@@ -993,7 +1008,7 @@ window.addEventListener('keydown',e=>{
 let last=performance.now();
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
-  if(G&&!G.over&&!$('#overlay').classList.contains('show'))for(let i=0;i<G.speed;i++){update(dt);if(G.over)break;}
+  if(G&&!G.over&&!$('#overlay').classList.contains('show')){updateBanner(dt);for(let i=0;i<G.speed;i++){update(dt);if(G.over)break;}}
   render();updateHUD();
   requestAnimationFrame(frame);
 }
