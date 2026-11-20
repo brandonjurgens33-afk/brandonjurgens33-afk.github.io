@@ -61,11 +61,100 @@ canvas#game{width:100%;height:auto;aspect-ratio:3/2;display:block;border-radius:
 .diff button{background:var(--panel2)}
 .diff button.on{background:var(--gold);color:#222}
 .big{font-size:18px;padding:10px 28px}
+#top{max-width:1320px;margin:0 auto;padding:16px 12px 4px}
+.intro h1{margin:0;font-size:32px;color:#fff;letter-spacing:.01em}
+.intro h1 span{color:var(--red)}
+.intro p{margin:6px 0 14px;color:var(--muted);max-width:820px;line-height:1.5}
+.storygrid{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:12px}
+.story{background:var(--panel);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;border-top:4px solid var(--red)}
+.story.rules{border-top-color:var(--gold)}
+.story .kicker{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--gold)}
+.story h2{margin:0;font-size:17px;line-height:1.3;color:#fff}
+.story h3{margin:6px 0 0;font-size:14px;color:#fff}
+.story p{margin:0;font-size:13.5px;line-height:1.55;color:var(--cream)}
+.story ul,.story ol{margin:0;padding-left:18px;font-size:13px;line-height:1.55;color:var(--cream)}
+.story li{margin:2px 0}
+.story .facts li::marker{color:var(--red)}
+.story .byline{font-size:11.5px;color:var(--muted)}
+.story .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+.story .actions a{display:inline-block;padding:7px 12px;border-radius:8px;background:var(--panel2);color:var(--cream);text-decoration:none;font-weight:700;font-size:13px}
+.story .actions a:hover{filter:brightness(1.2)}
+.story details{font-size:13px;color:var(--cream)}
+.story summary{cursor:pointer;font-weight:700;color:var(--gold)}
+.disclaim{font-size:11px;color:var(--muted);margin:8px 0 0}
+.mapcard a.storylink{display:inline-block;margin-top:6px;font-size:12px;color:var(--gold);font-weight:700}
+.card a.storylink{color:var(--gold);font-weight:700}
+@media (max-width:1100px){.storygrid{grid-template-columns:1fr 1fr}.story.rules{grid-column:1/-1}}
+@media (max-width:640px){.storygrid{grid-template-columns:1fr}.intro h1{font-size:26px}}
 @media (max-width:950px){#app{flex-direction:column}#side{width:100%}.towers{grid-template-columns:repeat(7,1fr)}}
 @media (max-width:640px){.towers{grid-template-columns:repeat(4,1fr)}.maps{grid-template-columns:1fr}.card h1{font-size:26px}#app{padding:8px}}
 </style>
 </head>
 <body>
+<header id="top">
+  <div class="intro">
+    <h1>Wrecking Ball <span>Defense</span></h1>
+    <p>Two University of Nebraska&ndash;Lincoln landmarks are scheduled for demolition and rebuilding. In this game, you hold off the wrecking balls. Read the real stories below, then pick a map and defend it.</p>
+  </div>
+  <div class="storygrid">
+    <article class="story">
+      <div class="kicker">Map 1 &middot; Memorial Stadium</div>
+      <h2>&lsquo;Big Red Rebuilt&rsquo;: Memorial Stadium to get a $600 million renovation</h2>
+      <p>Nebraska Athletics plans to tear down and rebuild parts of the 100-year-old home of Husker football.</p>
+      <ul class="facts">
+        <li>South Stadium and the West Stadium seating bowl would be demolished, and South Stadium rebuilt with a large video board.</li>
+        <li>Capacity drops from about 85,000 to 80,000, with 7,000 seats for students and the band.</li>
+        <li>Work is set to start after the 2026 season and finish by the 2028 season.</li>
+        <li>Paid for with $250 million in donations and $350 million in private bonds. No tuition or tax dollars.</li>
+      </ul>
+      <div class="byline">The Daily Nebraskan &middot; Justin Diep and Logan Moseley &middot; April 17, 2026</div>
+      <div class="actions">
+        <a href="https://www.dailynebraskan.com/news/big-red-rebuilt-nebraska-s-memorial-stadium-to-get-600m-renovation/article_226e69c8-d3e3-45db-8fdf-f80fd9009f0d.html" target="_blank" rel="noopener">Read the full story &#8599;</a>
+        <button class="playmap" data-map="stadium">Play this map</button>
+      </div>
+    </article>
+    <article class="story">
+      <div class="kicker">Map 2 &middot; Selleck Dining Hall</div>
+      <h2>Selleck Quadrangle to be demolished and rebuilt in a $386 million project</h2>
+      <p>The NU Board of Regents approved replacing the 1950s-era Selleck Quad with a new home for first-year students on City Campus.</p>
+      <ul class="facts">
+        <li>Selleck, the old Health Center, and Seaton, Benton and Fairfield halls will come down.</li>
+        <li>In their place: a 1,700-bed residence hall plus a new dining center and retail space.</li>
+        <li>Demolition is expected in 2028. Phase one (800 beds and the new dining hall) opens in 2030, and phase two (900 beds) in 2032.</li>
+        <li>The Selleck dining hall stays open during construction. No tax or tuition dollars are used.</li>
+      </ul>
+      <div class="byline">The Daily Nebraskan &middot; Justin Diep &middot; June 23, 2026</div>
+      <div class="actions">
+        <a href="https://www.dailynebraskan.com/news/unl-s-selleck-quadrangle-to-be-demolished-rebuilt-in-386-million-project/article_59155988-1912-417a-be2f-80c3bd32f686.html" target="_blank" rel="noopener">Read the full story &#8599;</a>
+        <button class="playmap" data-map="selleck">Play this map</button>
+      </div>
+    </article>
+    <section class="story rules">
+      <div class="kicker">How to play</div>
+      <h2>Goal</h2>
+      <p>Keep the wrecking balls from reaching the building. Survive all <b>40 rounds</b> to save the landmark. Every ball that gets through takes away lives, and if your lives hit zero, the building is demolished.</p>
+      <h3>Rules</h3>
+      <ol>
+        <li>Pick a tower, then click beside the road to place it. You can't build on the road, buildings or trees.</li>
+        <li>Each hit knocks a ball down one layer: <b style="color:#ff6fbf">pink</b> &rarr; <b style="color:#ffd54a">gold</b> &rarr; <b style="color:#5fd16f">green</b> &rarr; <b style="color:#6ea8ff">blue</b> &rarr; <b style="color:#ff7a5c">rusty</b> &rarr; gone.</li>
+        <li>A ball that gets through costs one life for every layer it has left.</li>
+        <li>You earn cash for every layer you pop and for every round you finish. Spend it on new towers and upgrades.</li>
+        <li>Each tower has two upgrade paths with three tiers. Only one path can reach tier 3. Selling a tower returns 70% of what you spent.</li>
+        <li><b>Concrete</b> balls block sharp and cold attacks. Use hay bales, mortar shells, footballs, lightning or upgrades.</li>
+        <li><b>Mega</b> balls take 10 hits, and <b>Demolition Crane</b> bosses roll in on rounds 20, 25, 30, 35 and 40.</li>
+      </ol>
+      <details>
+        <summary>Controls</summary>
+        <ul>
+          <li>Click a tower button, then click the map. Hold Shift to place several.</li>
+          <li>Click a placed tower to upgrade it, change its targeting or sell it.</li>
+          <li><b>Space</b> starts the next round, <b>F</b> changes speed (1&times;, 2&times;, 3&times;), <b>1&ndash;9, 0</b> pick towers, <b>Esc</b> cancels and <b>Delete</b> sells.</li>
+        </ul>
+      </details>
+    </section>
+  </div>
+  <p class="disclaim">This is a fan-made game inspired by Daily Nebraskan reporting. It is not affiliated with The Daily Nebraskan or the University of Nebraska.</p>
+</header>
 <div id="app">
   <div id="left">
     <div id="hud">
@@ -108,6 +197,8 @@ const MAPS={
   stadium:{
     name:'Memorial Stadium',
     blurb:'The wrecking crew is rolling around the stadium toward the west gate. Defend the old bowl!',
+    story:'https://www.dailynebraskan.com/news/big-red-rebuilt-nebraska-s-memorial-stadium-to-get-600m-renovation/article_226e69c8-d3e3-45db-8fdf-f80fd9009f0d.html',
+    real:'In real life, South Stadium and the West Stadium seating bowl are set to come down after the 2026 season as part of the $600 million "Big Red Rebuilt" project.',
     path:[[-40,90],[870,90],[870,560],[90,560],[90,250],[230,250],[230,320],[292,320]],
     pathW:44,
     rects:[{x:290,y:180,w:380,h:280}],
@@ -117,6 +208,8 @@ const MAPS={
   selleck:{
     name:'Selleck Dining Hall',
     blurb:'Wrecking balls loop campus and charge through the quad gap straight at the dining hall doors.',
+    story:'https://www.dailynebraskan.com/news/unl-s-selleck-quadrangle-to-be-demolished-rebuilt-in-386-million-project/article_59155988-1912-417a-be2f-80c3bd32f686.html',
+    real:'In real life, Selleck Quadrangle is expected to be demolished starting in 2028 to make way for a $386 million, 1,700-bed residence hall.',
     path:[[-40,560],[160,560],[160,100],[820,100],[820,580],[510,580],[510,300]],
     pathW:44,
     rects:[{x:330,y:200,w:360,h:80},{x:330,y:280,w:80,h:220},{x:610,y:280,w:80,h:220},{x:410,y:420,w:60,h:80},{x:550,y:420,w:60,h:80}],
@@ -919,22 +1012,23 @@ function hideOverlay(){$('#overlay').classList.remove('show');}
 function showMenu(){
   showOverlay(`<div class="card"><h1>Wrecking Ball <span>Defense</span></h1>
     <div class="sub">Lincoln Campus Edition: two landmarks are slated for the wrecking ball. Hold off the demolition crew for ${WIN_ROUND} rounds!</div>
-    <div class="maps">${Object.keys(MAPS).map(k=>`<div class="mapcard ${k===menuMap?'on':''}" data-k="${k}"><canvas width="480" height="320"></canvas><b>${MAPS[k].name}</b><span>${MAPS[k].blurb}</span></div>`).join('')}</div>
+    <div class="maps">${Object.keys(MAPS).map(k=>`<div class="mapcard ${k===menuMap?'on':''}" data-k="${k}"><canvas width="480" height="320"></canvas><b>${MAPS[k].name}</b><span>${MAPS[k].blurb}</span><br><a class="storylink" href="${MAPS[k].story}" target="_blank" rel="noopener">Read the real story &#8599;</a></div>`).join('')}</div>
     <div class="diff">${Object.keys(DIFF).map(d=>`<button data-d="${d}" class="${d===menuDiff?'on':''}">${DIFF[d].label}<br><small style="font-weight:500">${DIFF[d].lives} lives · $${DIFF[d].cash}</small></button>`).join('')}</div>
     <button class="big" id="playBtn">Play</button></div>`);
   document.querySelectorAll('.mapcard').forEach(m=>{const c=m.querySelector('canvas').getContext('2d');c.drawImage(getBG(m.dataset.k),0,0,480,320);
+    m.querySelector('.storylink').onclick=e=>e.stopPropagation();
     m.onclick=()=>{menuMap=m.dataset.k;document.querySelectorAll('.mapcard').forEach(x=>x.classList.toggle('on',x===m));};});
   document.querySelectorAll('.diff button').forEach(b=>b.onclick=()=>{menuDiff=b.dataset.d;document.querySelectorAll('.diff button').forEach(x=>x.classList.toggle('on',x===b));});
   $('#playBtn').onclick=()=>newGame(menuMap,menuDiff);
 }
 function gameOver(){
   G.over=true;G.roundActive=false;placing=null;
-  showOverlay(`<div class="card"><h1><span>Demolished!</span></h1><div class="sub">The wrecking balls flattened ${G.map.name} on round ${G.round}.</div>
+  showOverlay(`<div class="card"><h1><span>Demolished!</span></h1><div class="sub">The wrecking balls flattened ${G.map.name} on round ${G.round}.</div><p class="sub">${G.map.real} <a class="storylink" href="${G.map.story}" target="_blank" rel="noopener">Read the story &#8599;</a></p>
     <button class="big" id="retry">Try Again</button> <button class="big ghost" id="tomenu">Main Menu</button></div>`);
   $('#retry').onclick=()=>newGame(G.mapKey,G.diff);$('#tomenu').onclick=showMenu;
 }
 function showWin(){
-  showOverlay(`<div class="card"><h1>Landmark <span>Saved!</span></h1><div class="sub">You held off all ${WIN_ROUND} rounds of the demolition crew at ${G.map.name}. Go Big Red!</div>
+  showOverlay(`<div class="card"><h1>Landmark <span>Saved!</span></h1><div class="sub">You held off all ${WIN_ROUND} rounds of the demolition crew at ${G.map.name}. Go Big Red!</div><p class="sub">${G.map.real} <a class="storylink" href="${G.map.story}" target="_blank" rel="noopener">Read the story &#8599;</a></p>
     <button class="big" id="free">Keep Playing (Freeplay)</button> <button class="big ghost" id="tomenu">Main Menu</button></div>`);
   $('#free').onclick=()=>{G.freeplay=true;hideOverlay();refreshButtons();};$('#tomenu').onclick=showMenu;
 }
@@ -952,6 +1046,10 @@ cv.addEventListener('pointerdown',ev=>{
 });
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 $('#startBtn').onclick=startRound;
+document.querySelectorAll('.playmap').forEach(b=>b.onclick=()=>{
+  if(G&&!G.over&&G.round>1&&!confirm('Start a new game on this map? Your current progress will be lost.'))return;
+  menuMap=b.dataset.map;newGame(menuMap,menuDiff);$('#app').scrollIntoView({behavior:'smooth'});
+});
 $('#speedBtn').onclick=()=>{if(!G)return;G.speed=G.speed===1?2:G.speed===2?3:1;$('#speedBtn').textContent='Speed '+G.speed+'×';};
 $('#menuBtn').onclick=()=>{if(G&&!G.over&&!confirm('Quit to the main menu? Progress will be lost.'))return;G=null;placing=null;sel=null;showMenu();buildInfo();};
 $('#auto').onchange=()=>{if($('#auto').checked&&G&&!G.roundActive&&!G.over&&G.round>1)startRound();};
